@@ -1,0 +1,16 @@
+{
+  "name": "spice-garden-backend",
+  "version": "1.0.0",
+  "description": "Backend server for Spice Garden admin dashboard and menu site",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.6",
+    "dotenv": "^17.4.2",
+    "express": "^4.22.1",
+    "mongoose": "^9.6.2",
+    "uuid": "^9.0.0"
+  }
+}

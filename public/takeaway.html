@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Order Takeaway — Spice Garden</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --gold: #c9a84c; --gold-light: #e8c97a; --gold-dark: #8a6a1f;
+      --deep: #0d0a07; --dark: #1a1208; --card: #1f1810;
+      --cream: #f5ede0; --muted: #9e8a72; --red: #8b0000; --red-light: #c0392b;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--deep); color: var(--cream); font-family: 'Lato', sans-serif; font-weight: 300; overflow-x: hidden; }
+    body::before { content: ''; position: fixed; inset: 0; background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E"); opacity: 0.4; pointer-events: none; z-index: 0; }
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(13,10,7,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); padding: 0 40px; }
+    .nav-inner { max-width: 1100px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 3px; color: var(--gold); text-decoration: none; }
+    .nav-back { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+    .nav-back:hover { color: var(--gold); }
+    .page-hero { text-align: center; padding: 50px 20px 30px; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.1) 0%, transparent 70%); position: relative; z-index: 1; }
+    .page-tag { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 10px; }
+    .page-title { font-family: 'Cinzel', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: 3px; background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-rule { display: flex; align-items: center; gap: 16px; justify-content: center; margin: 14px 0 8px; }
+    .page-rule span { height: 1px; width: 60px; background: linear-gradient(90deg, transparent, var(--gold-dark)); }
+    .page-rule span:last-child { background: linear-gradient(90deg, var(--gold-dark), transparent); }
+    .page-rule em { color: var(--gold); font-style: normal; }
+    .page-sub { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1.1rem; }
+    .layout { max-width: 1100px; margin: 0 auto; padding: 32px 24px 80px; display: grid; grid-template-columns: 1fr 360px; gap: 24px; position: relative; z-index: 1; }
+    .cat-tabs { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 24px; }
+    .cat-tab { font-family: 'Lato', sans-serif; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; padding: 8px 18px; border: 1px solid rgba(201,168,76,0.25); background: transparent; color: var(--muted); cursor: pointer; transition: all 0.3s; position: relative; overflow: hidden; }
+    .cat-tab::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); opacity: 0; transition: opacity 0.3s; }
+    .cat-tab span { position: relative; z-index: 1; }
+    .cat-tab:hover, .cat-tab.active { color: var(--deep); border-color: var(--gold); }
+    .cat-tab:hover::before, .cat-tab.active::before { opacity: 1; }
+    .menu-section { display: none; }
+    .menu-section.active { display: block; }
+    .section-label-sm { font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 3px; color: var(--gold); margin-bottom: 16px; }
+    .section-label-sm::before, .section-label-sm::after { content: '✦'; font-size: 7px; margin: 0 8px; opacity: 0.5; }
+    .items-list { display: flex; flex-direction: column; gap: 2px; margin-bottom: 32px; }
+    .order-item { background: var(--card); border: 1px solid rgba(201,168,76,0.08); padding: 16px 20px; display: flex; align-items: center; gap: 16px; transition: all 0.3s; position: relative; overflow: hidden; }
+    .order-item::before { content: ''; position: absolute; left: 0; top: 0; width: 2px; height: 0; background: linear-gradient(180deg, var(--gold), var(--gold-dark)); transition: height 0.3s; }
+    .order-item:hover { border-color: rgba(201,168,76,0.25); }
+    .order-item:hover::before { height: 100%; }
+    .item-info { flex: 1; }
+    .item-name { font-family: 'Cormorant Garamond', serif; font-size: 1.05rem; font-weight: 600; color: var(--cream); margin-bottom: 3px; }
+    .item-desc-sm { font-size: 0.75rem; color: var(--muted); line-height: 1.5; }
+    .item-price-sm { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--gold); font-weight: 600; white-space: nowrap; margin-right: 12px; }
+    .qty-ctrl { display: flex; align-items: center; gap: 8px; }
+    .qty-btn { width: 28px; height: 28px; background: rgba(201,168,76,0.1); border: 1px solid rgba(201,168,76,0.3); color: var(--gold); font-size: 16px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.2s; font-family: 'Lato', sans-serif; }
+    .qty-btn:hover { background: rgba(201,168,76,0.25); }
+    .qty-num { font-family: 'Cinzel', serif; font-size: 0.9rem; color: var(--cream); min-width: 20px; text-align: center; }
+    .item-badges-sm { display: flex; gap: 4px; margin-top: 5px; flex-wrap: wrap; }
+    .badge-sm { font-size: 8px; letter-spacing: 1.5px; text-transform: uppercase; padding: 2px 6px; }
+    .bv { border: 1px solid rgba(100,200,100,0.4); color: #6dc86d; }
+    .bs { border: 1px solid rgba(200,80,80,0.4); color: #e07070; }
+    .bc { border: 1px solid rgba(201,168,76,0.4); color: var(--gold); }
+    .cart-panel { position: sticky; top: 84px; height: fit-content; }
+    .cart-box { background: var(--card); border: 1px solid rgba(201,168,76,0.15); padding: 28px; }
+    .cart-title { font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 3px; color: var(--gold); margin-bottom: 20px; text-align: center; }
+    .cart-title::before, .cart-title::after { content: '✦'; font-size: 7px; margin: 0 8px; opacity: 0.5; }
+
+    /* Customer details inside cart */
+    .customer-fields { margin-bottom: 16px; display: flex; flex-direction: column; gap: 10px; }
+    .cfield label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 5px; }
+    .cfield input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.2); color: var(--cream); font-family: 'Lato'; font-size: 12px; padding: 10px 14px; outline: none; }
+    .cfield input:focus { border-color: var(--gold); }
+    .cart-divider-label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: rgba(158,138,114,0.5); text-align: center; margin: 4px 0 12px; }
+
+    .cart-empty { text-align: center; padding: 32px 0; }
+    .cart-empty-icon { font-size: 2.5rem; margin-bottom: 8px; }
+    .cart-empty-text { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 0.95rem; }
+    .cart-items { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
+    .cart-row { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--muted); padding-bottom: 8px; border-bottom: 1px solid rgba(201,168,76,0.06); }
+    .cart-row-name { color: var(--cream); font-size: 12px; max-width: 160px; }
+    .cart-row-price { color: var(--gold); font-family: 'Cinzel', serif; font-size: 11px; white-space: nowrap; }
+    .cart-row-remove { cursor: pointer; color: rgba(158,138,114,0.4); font-size: 14px; transition: color 0.2s; padding-left: 8px; }
+    .cart-row-remove:hover { color: #e07070; }
+    .cart-divider { height: 1px; background: linear-gradient(90deg, transparent, rgba(201,168,76,0.2), transparent); margin: 12px 0; }
+    .cart-total { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+    .cart-total-label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); }
+    .cart-total-price { font-family: 'Cinzel', serif; font-size: 1.2rem; color: var(--gold); font-weight: 600; }
+    .cart-note { font-size: 10px; letter-spacing: 1px; color: rgba(158,138,114,0.5); margin-bottom: 16px; }
+    .delivery-toggle { display: flex; gap: 0; margin-bottom: 16px; }
+    .delivery-opt { flex: 1; padding: 10px; text-align: center; font-size: 10px; letter-spacing: 2px; text-transform: uppercase; cursor: pointer; border: 1px solid rgba(201,168,76,0.2); color: var(--muted); transition: all 0.3s; }
+    .delivery-opt.active { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--deep); font-weight: 700; border-color: var(--gold); }
+    .address-field { display: none; margin-bottom: 14px; }
+    .address-field.show { display: block; }
+    .address-field input { width: 100%; background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.2); color: var(--cream); font-family: 'Lato'; font-size: 12px; padding: 10px 14px; outline: none; }
+    .address-field input:focus { border-color: var(--gold); }
+    .address-field label { font-size: 9px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 6px; }
+    .error-msg { background: rgba(139,0,0,0.2); border: 1px solid rgba(200,80,80,0.3); color: #ff9999; font-size: 11px; letter-spacing: 1px; padding: 10px 14px; margin-bottom: 12px; display: none; }
+    .error-msg.show { display: block; }
+    .btn-order { width: 100%; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--deep); font-family: 'Lato', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 16px; border: none; cursor: pointer; position: relative; overflow: hidden; transition: all 0.4s; }
+    .btn-order::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold-light), var(--gold)); opacity: 0; transition: opacity 0.4s; }
+    .btn-order span { position: relative; z-index: 1; }
+    .btn-order:hover::before { opacity: 1; }
+    .btn-order:hover { transform: translateY(-2px); box-shadow: 0 10px 28px rgba(201,168,76,0.3); }
+    .btn-order:disabled { opacity: 0.4; cursor: not-allowed; transform: none; box-shadow: none; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px); }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--dark); border: 1px solid rgba(201,168,76,0.3); padding: 48px 40px; text-align: center; max-width: 480px; width: 90%; animation: modalIn 0.4s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-icon { font-size: 3rem; margin-bottom: 16px; }
+    .modal-title { font-family: 'Cinzel', serif; font-size: 1.5rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 12px; }
+    .modal-text { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1rem; line-height: 1.7; margin-bottom: 16px; }
+    .modal-eta { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); margin-bottom: 24px; background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); padding: 12px; }
+    .btn-modal { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--deep); font-family: 'Lato'; font-weight: 700; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 14px 36px; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; }
+    .btn-modal:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle { position: absolute; width: 1px; height: 1px; background: var(--gold); border-radius: 50%; animation: float linear infinite; opacity: 0; }
+    @keyframes float { 0% { transform: translateY(100vh); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.3; } 100% { transform: translateY(-10vh) translateX(40px); opacity: 0; } }
+    @media(max-width:768px) { .layout { grid-template-columns: 1fr; } .cart-panel { position: static; } }
+  </style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<nav>
+  <div class="nav-inner">
+    <a href="main.html" class="nav-logo">Spice Garden</a>
+    <a href="main.html" class="nav-back">← Back to Menu</a>
+  </div>
+</nav>
+<div class="page-hero">
+  <p class="page-tag">Spice Garden · Coimbatore</p>
+  <h1 class="page-title">Order Takeaway</h1>
+  <div class="page-rule"><span></span><em>✦</em><span></span></div>
+  <p class="page-sub">Pick your favourites and collect or get it delivered</p>
+</div>
+
+<div class="layout">
+  <!-- MENU SIDE -->
+  <div class="menu-side">
+    <div class="cat-tabs">
+      <button class="cat-tab active" onclick="showCat('starters',this)"><span>Starters</span></button>
+      <button class="cat-tab" onclick="showCat('mains',this)"><span>Mains</span></button>
+      <button class="cat-tab" onclick="showCat('breads',this)"><span>Breads & Rice</span></button>
+      <button class="cat-tab" onclick="showCat('desserts',this)"><span>Desserts</span></button>
+      <button class="cat-tab" onclick="showCat('drinks',this)"><span>Drinks</span></button>
+    </div>
+    <div class="menu-section active" id="cat-starters"><div class="section-label-sm">Starters</div><div class="items-list" id="list-starters"></div></div>
+    <div class="menu-section" id="cat-mains"><div class="section-label-sm">Main Course</div><div class="items-list" id="list-mains"></div></div>
+    <div class="menu-section" id="cat-breads"><div class="section-label-sm">Breads & Rice</div><div class="items-list" id="list-breads"></div></div>
+    <div class="menu-section" id="cat-desserts"><div class="section-label-sm">Desserts</div><div class="items-list" id="list-desserts"></div></div>
+    <div class="menu-section" id="cat-drinks"><div class="section-label-sm">Drinks</div><div class="items-list" id="list-drinks"></div></div>
+  </div>
+
+  <!-- CART SIDE -->
+  <div class="cart-panel">
+    <div class="cart-box">
+      <div class="cart-title">Your Order</div>
+
+      <!-- Customer details -->
+      <div class="customer-fields">
+        <div class="cfield">
+          <label>Your Name</label>
+          <input type="text" id="custName" placeholder="Full name">
+        </div>
+        <div class="cfield">
+          <label>Phone Number</label>
+          <input type="tel" id="custPhone" placeholder="+91 XXXXX XXXXX">
+        </div>
+      </div>
+      <div class="cart-divider-label">— Your Items —</div>
+
+      <div class="delivery-toggle">
+        <div class="delivery-opt active" id="opt-pickup" onclick="setDelivery('pickup')">Pickup</div>
+        <div class="delivery-opt" id="opt-delivery" onclick="setDelivery('delivery')">Delivery</div>
+      </div>
+
+      <div class="address-field" id="addressField">
+        <label>Delivery Address</label>
+        <input type="text" id="deliveryAddr" placeholder="Enter your full address">
+      </div>
+
+      <div id="cartEmpty" class="cart-empty">
+        <div class="cart-empty-icon">🍽</div>
+        <p class="cart-empty-text">Your order is empty.<br>Add items from the menu.</p>
+      </div>
+      <div id="cartItems" class="cart-items" style="display:none"></div>
+      <div id="cartSummary" style="display:none">
+        <div class="cart-divider"></div>
+        <div class="cart-total"><span class="cart-total-label">Total</span><span class="cart-total-price" id="cartTotal">₹0</span></div>
+        <p class="cart-note">* Packing ₹20 · Delivery ₹40 extra</p>
+      </div>
+
+      <div class="error-msg" id="orderError"></div>
+      <button class="btn-order" id="orderBtn" onclick="placeOrder()" disabled><span>Place Order</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-icon">🎊</div>
+    <div class="modal-title">Order Placed!</div>
+    <p class="modal-text">Your order from Spice Garden has been received. We're preparing it fresh for you right now.</p>
+    <div class="modal-eta" id="modalEta"></div>
+    <a href="main.html" class="btn-modal">Back to Menu</a>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────────────
+  const API_BASE = 'http://localhost:3000/api';
+
+  // ── MENU DATA ───────────────────────────────────────────────────────────────
+  const menuData = {
+    starters: [
+      { name:'Samosa (2 pcs)', desc:'Crispy pastry with spiced potato & peas', price:80, badges:['veg'] },
+      { name:'Chicken Tikka', desc:'Chargrilled clay oven chicken', price:220, badges:['spicy','chef'] },
+      { name:'Paneer Pakoda', desc:'Cottage cheese fritters', price:150, badges:['veg'] },
+      { name:'Soup of the Day', desc:"Ask us for today's selection", price:120, badges:[] },
+    ],
+    mains: [
+      { name:'Butter Chicken', desc:'Velvety tomato-cream sauce', price:280, badges:['chef'] },
+      { name:'Paneer Tikka Masala', desc:'Rich smoky masala gravy', price:240, badges:['veg'] },
+      { name:'Mutton Rogan Josh', desc:'Kashmiri slow-cooked lamb', price:380, badges:['spicy','chef'] },
+      { name:'Dal Makhani', desc:'Black lentils, butter & cream', price:200, badges:['veg'] },
+      { name:'Prawn Masala', desc:'Coastal spice blend, coconut', price:340, badges:['spicy'] },
+      { name:'Palak Paneer', desc:'Creamy spinach & cottage cheese', price:220, badges:['veg'] },
+    ],
+    breads: [
+      { name:'Garlic Naan', desc:'Tandoor baked with garlic butter', price:60, badges:['veg'] },
+      { name:'Hyderabadi Biryani', desc:'Dum-cooked saffron basmati rice', price:320, badges:['chef'] },
+      { name:'Steamed Basmati Rice', desc:'Aged basmati with papadom', price:80, badges:['veg'] },
+      { name:'Butter Roti', desc:'Whole wheat with churned butter', price:40, badges:['veg'] },
+    ],
+    desserts: [
+      { name:'Gulab Jamun', desc:'Rose-cardamom syrup dumplings', price:90, badges:['veg'] },
+      { name:'Kulfi Falooda', desc:'Indian ice cream & rose syrup', price:130, badges:['veg','chef'] },
+      { name:'Kheer', desc:'Saffron rice pudding', price:100, badges:['veg'] },
+      { name:'Rasmalai', desc:'Saffron milk & pistachio', price:120, badges:['veg'] },
+    ],
+    drinks: [
+      { name:'Mango Lassi', desc:'Alphonso mango yogurt blend', price:80, badges:['veg'] },
+      { name:'Masala Chai', desc:'Ginger cardamom tea', price:50, badges:['veg'] },
+      { name:'Rose Sharbat', desc:'Rose water & basil seeds', price:60, badges:['veg'] },
+      { name:'Fresh Lime Soda', desc:'Sweet, salted, or mixed', price:55, badges:['veg'] },
+    ],
+  };
+
+  const cart = {};
+  const badgeLabel = { veg:'Veg', spicy:'Spicy', chef:"Chef's" };
+  const badgeClass  = { veg:'bv', spicy:'bs', chef:'bc' };
+
+  // Build menu items
+  Object.entries(menuData).forEach(([cat, items]) => {
+    const list = document.getElementById('list-' + cat);
+    items.forEach(item => {
+      const key = item.name;
+      cart[key] = { ...item, qty: 0 };
+      const div = document.createElement('div');
+      div.className = 'order-item';
+      div.innerHTML = `
+        <div class="item-info">
+          <div class="item-name">${item.name}</div>
+          <div class="item-desc-sm">${item.desc}</div>
+          <div class="item-badges-sm">${item.badges.map(b=>`<span class="badge-sm ${badgeClass[b]}">${badgeLabel[b]}</span>`).join('')}</div>
+        </div>
+        <div class="item-price-sm">₹${item.price}</div>
+        <div class="qty-ctrl">
+          <button class="qty-btn" onclick="changeQty('${key}',-1)">−</button>
+          <span class="qty-num" id="qty-${key.replace(/[^a-z0-9]/gi,'_')}">0</span>
+          <button class="qty-btn" onclick="changeQty('${key}',1)">+</button>
+        </div>
+      `;
+      list.appendChild(div);
+    });
+  });
+
+  function changeQty(key, delta) {
+    cart[key].qty = Math.max(0, (cart[key].qty || 0) + delta);
+    const id = 'qty-' + key.replace(/[^a-z0-9]/gi,'_');
+    document.getElementById(id).textContent = cart[key].qty;
+    renderCart();
+  }
+
+  function renderCart() {
+    const items = Object.values(cart).filter(i => i.qty > 0);
+    const total = items.reduce((s, i) => s + i.price * i.qty, 0);
+    const cartEl    = document.getElementById('cartItems');
+    const emptyEl   = document.getElementById('cartEmpty');
+    const summaryEl = document.getElementById('cartSummary');
+    const btn       = document.getElementById('orderBtn');
+    if (items.length === 0) {
+      emptyEl.style.display = 'block'; cartEl.style.display = 'none';
+      summaryEl.style.display = 'none'; btn.disabled = true; return;
+    }
+    emptyEl.style.display = 'none'; cartEl.style.display = 'flex';
+    summaryEl.style.display = 'block'; btn.disabled = false;
+    cartEl.innerHTML = items.map(i => `
+      <div class="cart-row">
+        <span class="cart-row-name">${i.qty}× ${i.name}</span>
+        <span class="cart-row-price">₹${i.price * i.qty}</span>
+        <span class="cart-row-remove" onclick="removeItem('${i.name}')">✕</span>
+      </div>`).join('');
+    document.getElementById('cartTotal').textContent = '₹' + total;
+  }
+
+  function removeItem(key) {
+    cart[key].qty = 0;
+    const id = 'qty-' + key.replace(/[^a-z0-9]/gi,'_');
+    if (document.getElementById(id)) document.getElementById(id).textContent = 0;
+    renderCart();
+  }
+
+  let deliveryMode = 'pickup';
+  function setDelivery(mode) {
+    deliveryMode = mode;
+    document.getElementById('opt-pickup').classList.toggle('active', mode==='pickup');
+    document.getElementById('opt-delivery').classList.toggle('active', mode==='delivery');
+    document.getElementById('addressField').classList.toggle('show', mode==='delivery');
+  }
+
+  function showCat(cat, btn) {
+    document.querySelectorAll('.menu-section').forEach(s=>s.classList.remove('active'));
+    document.querySelectorAll('.cat-tab').forEach(t=>t.classList.remove('active'));
+    document.getElementById('cat-'+cat).classList.add('active');
+    btn.classList.add('active');
+  }
+
+  // ── PLACE ORDER ─────────────────────────────────────────────────────────────
+  async function placeOrder() {
+    const customerName  = document.getElementById('custName').value.trim();
+    const customerPhone = document.getElementById('custPhone').value.trim();
+    const deliveryAddr  = document.getElementById('deliveryAddr').value.trim();
+    const errorEl       = document.getElementById('orderError');
+    const btn           = document.getElementById('orderBtn');
+
+    const items = Object.values(cart).filter(i => i.qty > 0);
+    if (items.length === 0) return;
+
+    if (!customerName)  { showOrderError('Please enter your name.'); return; }
+    if (!customerPhone) { showOrderError('Please enter your phone number.'); return; }
+    if (deliveryMode === 'delivery' && !deliveryAddr) {
+      showOrderError('Please enter your delivery address.'); return;
+    }
+
+    errorEl.classList.remove('show');
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'Placing Order…';
+
+    const orderItems = items.map(i => ({ name: i.name, price: i.price, qty: i.qty }));
+
+    try {
+      const response = await fetch(`${API_BASE}/orders`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customerName, customerPhone,
+          items: orderItems,
+          deliveryMode,
+          deliveryAddress: deliveryAddr
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        const eta = deliveryMode === 'pickup'
+          ? 'Ready for Pickup in 25–30 minutes'
+          : 'Delivery in 40–50 minutes';
+        document.getElementById('modalEta').textContent = eta;
+        document.getElementById('modal').classList.add('show');
+      } else {
+        showOrderError(data.message || 'Order failed. Please try again.');
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Place Order';
+      }
+    } catch (err) {
+      showOrderError('Could not connect to server. Make sure the backend is running.');
+      btn.disabled = false;
+      btn.querySelector('span').textContent = 'Place Order';
+    }
+  }
+
+  function showOrderError(msg) {
+    const el = document.getElementById('orderError');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  // Particles
+  const pc = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div'); p.className = 'particle';
+    p.style.left = Math.random()*100+'vw';
+    p.style.width = p.style.height = (Math.random()*2+1)+'px';
+    p.style.animationDuration = (Math.random()*15+12)+'s';
+    p.style.animationDelay = (Math.random()*12)+'s';
+    pc.appendChild(p);
+  }
+</script>
+</body>
+</html>

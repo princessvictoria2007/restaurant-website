@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reserve a Table — Spice Garden</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Cinzel:wght@400;600&family=Lato:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --gold: #c9a84c; --gold-light: #e8c97a; --gold-dark: #8a6a1f;
+      --deep: #0d0a07; --dark: #1a1208; --card: #1f1810;
+      --cream: #f5ede0; --muted: #9e8a72;
+    }
+    html { scroll-behavior: smooth; }
+    body { background: var(--deep); color: var(--cream); font-family: 'Lato', sans-serif; font-weight: 300; overflow-x: hidden; }
+    body::before {
+      content: ''; position: fixed; inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.04'/%3E%3C/svg%3E");
+      opacity: 0.4; pointer-events: none; z-index: 0;
+    }
+    nav { position: sticky; top: 0; z-index: 100; background: rgba(13,10,7,0.9); backdrop-filter: blur(20px); border-bottom: 1px solid rgba(201,168,76,0.15); padding: 0 40px; }
+    .nav-inner { max-width: 900px; margin: 0 auto; display: flex; align-items: center; justify-content: space-between; height: 64px; }
+    .nav-logo { font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 3px; color: var(--gold); text-decoration: none; }
+    .nav-back { font-size: 11px; letter-spacing: 3px; text-transform: uppercase; color: var(--muted); text-decoration: none; transition: color 0.3s; }
+    .nav-back:hover { color: var(--gold); }
+    .page-hero { text-align: center; padding: 60px 20px 40px; background: radial-gradient(ellipse 80% 60% at 50% 0%, rgba(201,168,76,0.1) 0%, transparent 70%); position: relative; z-index: 1; }
+    .page-tag { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); margin-bottom: 12px; }
+    .page-title { font-family: 'Cinzel', serif; font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 600; letter-spacing: 3px; background: linear-gradient(135deg, var(--gold-light), var(--gold), var(--gold-dark)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; }
+    .page-rule { display: flex; align-items: center; gap: 16px; justify-content: center; margin: 16px 0 8px; }
+    .page-rule span { height: 1px; width: 60px; background: linear-gradient(90deg, transparent, var(--gold-dark)); }
+    .page-rule span:last-child { background: linear-gradient(90deg, var(--gold-dark), transparent); }
+    .page-rule em { color: var(--gold); font-style: normal; }
+    .page-sub { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1.1rem; }
+    .wrap { max-width: 900px; margin: 0 auto; padding: 40px 24px 80px; position: relative; z-index: 1; }
+    .tables-label { font-size: 10px; letter-spacing: 5px; text-transform: uppercase; color: var(--gold); text-align: center; margin-bottom: 8px; }
+    .tables-title { font-family: 'Cinzel', serif; font-size: 1.4rem; color: var(--cream); text-align: center; margin-bottom: 32px; letter-spacing: 2px; }
+    .tables-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 12px; margin-bottom: 48px; }
+    .table-card { background: var(--card); border: 1px solid rgba(201,168,76,0.1); padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s cubic-bezier(0.23,1,0.32,1); position: relative; overflow: hidden; }
+    .table-card::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(201,168,76,0.08), transparent); opacity: 0; transition: opacity 0.3s; }
+    .table-card:hover::before, .table-card.selected::before { opacity: 1; }
+    .table-card:hover { border-color: rgba(201,168,76,0.4); transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,0.4); }
+    .table-card.selected { border-color: var(--gold); box-shadow: 0 0 0 1px var(--gold), 0 8px 24px rgba(201,168,76,0.2); }
+    .table-card.booked { opacity: 0.4; cursor: not-allowed; pointer-events: none; }
+    .table-card.booked::after { content: 'Booked'; position: absolute; top: 8px; right: 8px; font-size: 8px; letter-spacing: 2px; background: rgba(139,0,0,0.6); color: #ff9999; padding: 2px 6px; }
+    .table-icon { font-size: 2rem; margin-bottom: 8px; }
+    .table-num { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 4px; }
+    .table-cap { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+    .table-zone { font-size: 10px; letter-spacing: 1px; color: rgba(158,138,114,0.6); }
+    .table-selected-mark { position: absolute; top: 8px; right: 8px; width: 18px; height: 18px; background: var(--gold); border-radius: 50%; display: none; align-items: center; justify-content: center; font-size: 10px; color: var(--deep); font-weight: 700; }
+    .table-card.selected .table-selected-mark { display: flex; }
+    .legend { display: flex; gap: 20px; justify-content: center; margin-bottom: 40px; flex-wrap: wrap; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 11px; letter-spacing: 2px; color: var(--muted); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 50%; }
+    .legend-dot.available { background: rgba(201,168,76,0.5); }
+    .legend-dot.selected { background: var(--gold); }
+    .legend-dot.booked { background: rgba(139,0,0,0.5); }
+    .form-section { background: var(--card); border: 1px solid rgba(201,168,76,0.12); padding: 40px; }
+    .form-title { font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 3px; color: var(--gold); margin-bottom: 28px; }
+    .form-title::before, .form-title::after { content: '✦'; font-size: 8px; margin: 0 10px; opacity: 0.5; }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; gap: 8px; }
+    .form-group.full { grid-column: 1 / -1; }
+    label { font-size: 10px; letter-spacing: 3px; text-transform: uppercase; color: var(--gold); }
+    input, select, textarea { background: rgba(255,255,255,0.04); border: 1px solid rgba(201,168,76,0.2); color: var(--cream); font-family: 'Lato', sans-serif; font-size: 13px; padding: 12px 16px; outline: none; transition: border-color 0.3s; -webkit-appearance: none; appearance: none; }
+    input:focus, select:focus, textarea:focus { border-color: var(--gold); background: rgba(201,168,76,0.04); }
+    select option { background: var(--dark); color: var(--cream); }
+    input:-webkit-autofill, textarea:-webkit-autofill, select:-webkit-autofill { box-shadow: 0 0 0 1000px rgba(255,255,255,0.04) inset !important; -webkit-text-fill-color: var(--cream) !important; }
+    textarea { resize: vertical; min-height: 80px; }
+    .selected-table-info { background: rgba(201,168,76,0.08); border: 1px solid rgba(201,168,76,0.2); padding: 14px 18px; margin-bottom: 20px; font-size: 13px; color: var(--muted); display: none; }
+    .selected-table-info.show { display: block; }
+    .selected-table-info strong { color: var(--gold); }
+    .btn-submit { width: 100%; margin-top: 24px; background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--deep); font-family: 'Lato', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 4px; text-transform: uppercase; padding: 18px; border: none; cursor: pointer; position: relative; overflow: hidden; transition: all 0.4s cubic-bezier(0.23,1,0.32,1); }
+    .btn-submit::before { content: ''; position: absolute; inset: 0; background: linear-gradient(135deg, var(--gold-light), var(--gold)); opacity: 0; transition: opacity 0.4s; }
+    .btn-submit span { position: relative; z-index: 1; }
+    .btn-submit:hover::before { opacity: 1; }
+    .btn-submit:hover { transform: translateY(-2px); box-shadow: 0 12px 32px rgba(201,168,76,0.35); }
+    .btn-submit:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .error-msg { background: rgba(139,0,0,0.2); border: 1px solid rgba(200,80,80,0.3); color: #ff9999; font-size: 12px; letter-spacing: 1px; padding: 12px 16px; margin-top: 16px; display: none; }
+    .error-msg.show { display: block; }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 200; backdrop-filter: blur(8px); }
+    .modal-overlay.show { display: flex; }
+    .modal { background: var(--dark); border: 1px solid rgba(201,168,76,0.3); padding: 48px 40px; text-align: center; max-width: 480px; width: 90%; animation: modalIn 0.4s cubic-bezier(0.23,1,0.32,1); }
+    @keyframes modalIn { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+    .modal-icon { font-size: 3rem; margin-bottom: 16px; }
+    .modal-title { font-family: 'Cinzel', serif; font-size: 1.5rem; color: var(--gold); letter-spacing: 2px; margin-bottom: 12px; }
+    .modal-text { font-family: 'Cormorant Garamond', serif; font-style: italic; color: var(--muted); font-size: 1rem; line-height: 1.7; margin-bottom: 8px; }
+    .modal-detail { font-size: 11px; letter-spacing: 2px; color: var(--muted); margin-bottom: 28px; }
+    .modal-detail strong { color: var(--gold); }
+    .btn-modal { background: linear-gradient(135deg, var(--gold), var(--gold-dark)); color: var(--deep); font-family: 'Lato', sans-serif; font-weight: 700; font-size: 11px; letter-spacing: 3px; text-transform: uppercase; padding: 14px 36px; border: none; cursor: pointer; text-decoration: none; display: inline-block; transition: all 0.3s; }
+    .btn-modal:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(201,168,76,0.3); }
+    .particles { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+    .particle { position: absolute; width: 1px; height: 1px; background: var(--gold); border-radius: 50%; animation: float linear infinite; opacity: 0; }
+    @keyframes float { 0% { transform: translateY(100vh); opacity: 0; } 10% { opacity: 0.6; } 90% { opacity: 0.3; } 100% { transform: translateY(-10vh) translateX(40px); opacity: 0; } }
+    @media(max-width:600px) { .form-grid { grid-template-columns: 1fr; } .form-section { padding: 24px; } }
+  </style>
+</head>
+<body>
+<div class="particles" id="particles"></div>
+<nav>
+  <div class="nav-inner">
+    <a href="main.html" class="nav-logo">Spice Garden</a>
+    <a href="main.html" class="nav-back">← Back to Menu</a>
+  </div>
+</nav>
+<div class="page-hero">
+  <p class="page-tag">Spice Garden · Coimbatore</p>
+  <h1 class="page-title">Reserve a Table</h1>
+  <div class="page-rule"><span></span><em>✦</em><span></span></div>
+  <p class="page-sub">Select your preferred table and we'll hold it for you</p>
+</div>
+<div class="wrap">
+  <p class="tables-label">Choose your spot</p>
+  <h2 class="tables-title">Table Availability</h2>
+  <div class="legend">
+    <div class="legend-item"><div class="legend-dot available"></div> Available</div>
+    <div class="legend-item"><div class="legend-dot selected"></div> Your Selection</div>
+    <div class="legend-item"><div class="legend-dot booked"></div> Already Booked</div>
+  </div>
+  <div class="tables-grid" id="tablesGrid"></div>
+  <div class="form-section">
+    <div class="form-title">Your Details</div>
+    <div class="selected-table-info" id="selectedInfo">
+      Selected: <strong id="selectedSummary">—</strong>
+    </div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Full Name</label>
+        <input type="text" id="fname" placeholder="Your full name">
+      </div>
+      <div class="form-group">
+        <label>Phone Number</label>
+        <input type="tel" id="phone" placeholder="+91 XXXXX XXXXX">
+      </div>
+      <div class="form-group">
+        <label>Date</label>
+        <input type="date" id="rdate">
+      </div>
+      <div class="form-group">
+        <label>Occasion</label>
+        <select id="occasion">
+          <option value="">Select (optional)</option>
+          <option>Birthday</option>
+          <option>Anniversary</option>
+          <option>Business Dinner</option>
+          <option>Family Gathering</option>
+          <option>Date Night</option>
+          <option>Other</option>
+        </select>
+      </div>
+      <div class="form-group full">
+        <label>Special Requests</label>
+        <textarea id="notes" placeholder="Dietary requirements, seating preferences, decorations..."></textarea>
+      </div>
+    </div>
+    <div class="error-msg" id="errorMsg"></div>
+    <button class="btn-submit" id="submitBtn" onclick="submitReservation()"><span>Confirm Reservation</span></button>
+  </div>
+</div>
+
+<!-- SUCCESS MODAL -->
+<div class="modal-overlay" id="modal">
+  <div class="modal">
+    <div class="modal-icon">🎉</div>
+    <div class="modal-title">Reservation Confirmed!</div>
+    <p class="modal-text">Thank you! Your table has been reserved at Spice Garden. We look forward to welcoming you.</p>
+    <p class="modal-detail" id="modalDetail"></p>
+    <a href="main.html" class="btn-modal">Back to Menu</a>
+  </div>
+</div>
+
+<script>
+  // ── CONFIG ──────────────────────────────────────────────────────────────────
+  // Change this to your server address when you deploy
+  const API_BASE = 'http://localhost:3000/api';
+
+  // ── TABLE DATA ──────────────────────────────────────────────────────────────
+  const tables = [
+    { num: 'T-01', cap: 2, zone: 'Window Side',    icon: '🪑' },
+    { num: 'T-02', cap: 2, zone: 'Window Side',    icon: '🪑' },
+    { num: 'T-03', cap: 4, zone: 'Main Hall',      icon: '🍽' },
+    { num: 'T-04', cap: 4, zone: 'Main Hall',      icon: '🍽' },
+    { num: 'T-05', cap: 4, zone: 'Main Hall',      icon: '🍽' },
+    { num: 'T-06', cap: 6, zone: 'Garden View',    icon: '🌿' },
+    { num: 'T-07', cap: 6, zone: 'Garden View',    icon: '🌿' },
+    { num: 'T-08', cap: 6, zone: 'Private Nook',   icon: '🕯' },
+    { num: 'T-09', cap: 8, zone: 'Private Dining', icon: '👑' },
+    { num: 'T-10', cap: 8, zone: 'Private Dining', icon: '👑' },
+  ];
+
+  let selected = null;
+  let bookedTables = [];
+
+  const grid = document.getElementById('tablesGrid');
+
+  // ── BUILD TABLE GRID ────────────────────────────────────────────────────────
+  function buildGrid() {
+    grid.innerHTML = '';
+    tables.forEach(t => {
+      const isBooked = bookedTables.includes(t.num);
+      const card = document.createElement('div');
+      card.className = 'table-card' + (isBooked ? ' booked' : '');
+      card.innerHTML = `
+        <div class="table-selected-mark">✓</div>
+        <div class="table-icon">${t.icon}</div>
+        <div class="table-num">${t.num}</div>
+        <div class="table-cap">Seats ${t.cap} ${t.cap === 1 ? 'Guest' : 'Guests'}</div>
+        <div class="table-zone">${t.zone}</div>
+      `;
+      if (!isBooked) {
+        card.onclick = () => {
+          document.querySelectorAll('.table-card').forEach(c => c.classList.remove('selected'));
+          card.classList.add('selected');
+          selected = t;
+          document.getElementById('selectedInfo').classList.add('show');
+          document.getElementById('selectedSummary').textContent =
+            `${t.num} · ${t.zone} · Seats up to ${t.cap} guests`;
+        };
+      }
+      grid.appendChild(card);
+    });
+  }
+
+  // ── FETCH BOOKED TABLES FOR SELECTED DATE ───────────────────────────────────
+  async function fetchAvailability(date) {
+    try {
+      const res = await fetch(`${API_BASE}/reservations/availability?date=${date}`);
+      const data = await res.json();
+      if (data.success) {
+        bookedTables = data.bookedTables;
+        selected = null;
+        document.getElementById('selectedInfo').classList.remove('show');
+        buildGrid();
+      }
+    } catch (err) {
+      console.error('Could not fetch availability:', err);
+    }
+  }
+
+  // ── DATE CHANGE LISTENER ────────────────────────────────────────────────────
+  const dateInput = document.getElementById('rdate');
+  const today = new Date().toISOString().split('T')[0];
+  dateInput.min = today;
+  dateInput.addEventListener('change', () => {
+    if (dateInput.value) fetchAvailability(dateInput.value);
+  });
+
+  // ── SUBMIT RESERVATION ──────────────────────────────────────────────────────
+  async function submitReservation() {
+    const name     = document.getElementById('fname').value.trim();
+    const phone    = document.getElementById('phone').value.trim();
+    const date     = document.getElementById('rdate').value;
+    const occasion = document.getElementById('occasion').value;
+    const notes    = document.getElementById('notes').value.trim();
+    const errorEl  = document.getElementById('errorMsg');
+    const btn      = document.getElementById('submitBtn');
+
+    // Client-side validation
+    if (!selected)  { showError('Please select a table first.'); return; }
+    if (!name)       { showError('Please enter your full name.'); return; }
+    if (!phone)      { showError('Please enter your phone number.'); return; }
+    if (!date)       { showError('Please select a date.'); return; }
+
+    errorEl.classList.remove('show');
+    btn.disabled = true;
+    btn.querySelector('span').textContent = 'Confirming…';
+
+    try {
+      const response = await fetch(`${API_BASE}/reservations`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          name, phone,
+          tableNum:      selected.num,
+          tableZone:     selected.zone,
+          tableCapacity: selected.cap,
+          date, occasion, notes
+        })
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Show success modal
+        document.getElementById('modalDetail').innerHTML =
+          `<strong>${selected.num}</strong> · ${selected.zone} · ${date}<br>Name: <strong>${name}</strong>`;
+        document.getElementById('modal').classList.add('show');
+      } else {
+        showError(data.message || 'Booking failed. Please try again.');
+        btn.disabled = false;
+        btn.querySelector('span').textContent = 'Confirm Reservation';
+      }
+
+    } catch (err) {
+      showError('Could not connect to server. Make sure the backend is running.');
+      btn.disabled = false;
+      btn.querySelector('span').textContent = 'Confirm Reservation';
+    }
+  }
+
+  function showError(msg) {
+    const el = document.getElementById('errorMsg');
+    el.textContent = msg;
+    el.classList.add('show');
+  }
+
+  // ── INIT ────────────────────────────────────────────────────────────────────
+  buildGrid();
+
+  // Particles
+  const pc = document.getElementById('particles');
+  for (let i = 0; i < 15; i++) {
+    const p = document.createElement('div'); p.className = 'particle';
+    p.style.left = Math.random() * 100 + 'vw';
+    p.style.width = p.style.height = (Math.random() * 2 + 1) + 'px';
+    p.style.animationDuration = (Math.random() * 15 + 12) + 's';
+    p.style.animationDelay = (Math.random() * 12) + 's';
+    pc.appendChild(p);
+  }
+</script>
+</body>
+</html>
