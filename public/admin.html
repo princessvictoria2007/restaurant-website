@@ -143,13 +143,7 @@
 </div>
 
 <script>
-  // ADMIN BACKEND CONNECTOR
-  // This admin page is a frontend dashboard for your backend API.
-  // Keep this file as its own page (admin.html) in the same folder.
-  // It expects a running backend server at the API_BASE address below.
-  // The admin page now reads from browser localStorage instead of a backend server.
-  const STORAGE_KEY_RESERVATIONS = 'spiceGardenReservations';
-  const STORAGE_KEY_ORDERS = 'spiceGardenOrders';
+  const API_BASE = 'https://restaurant-website-0cxq.onrender.com/api';
 
   // ── TABS ──────────────────────────────────────────────────────────────────
   function switchTab(evt, tab) {
@@ -167,166 +161,176 @@
       + ' ' + d.toLocaleTimeString('en-IN', { hour:'2-digit', minute:'2-digit' });
   }
 
-  function readReservations() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_RESERVATIONS) || '[]'); }
-    catch (e) { return []; }
-  }
-
-  function saveReservations(items) {
-    localStorage.setItem(STORAGE_KEY_RESERVATIONS, JSON.stringify(items));
-  }
-
-  function readOrders() {
-    try { return JSON.parse(localStorage.getItem(STORAGE_KEY_ORDERS) || '[]'); }
-    catch (e) { return []; }
-  }
-
-  function saveOrders(items) {
-    localStorage.setItem(STORAGE_KEY_ORDERS, JSON.stringify(items));
-  }
-
   // ── LOAD STATS ────────────────────────────────────────────────────────────
-  function loadStats() {
-    const reservations = readReservations();
-    const orders = readOrders();
-    document.getElementById('st-total-res').textContent = reservations.length || '0';
-    document.getElementById('st-pending-res').textContent =
-      reservations.filter(r => r.status === 'pending').length;
-    document.getElementById('st-total-ord').textContent = orders.length || '0';
-    document.getElementById('st-active-ord').textContent =
-      orders.filter(o => ['received','preparing','ready','out_for_delivery'].includes(o.status)).length;
+  async function loadStats() {
+    try {
+      const [resRes, ordRes] = await Promise.all([
+        fetch(`${API_BASE}/reservations`),
+        fetch(`${API_BASE}/orders`)
+      ]);
+      const resData = await resRes.json();
+      const ordData = await ordRes.json();
+      const reservations = resData.data || [];
+      const orders = ordData.data || [];
+      document.getElementById('st-total-res').textContent = reservations.length || '0';
+      document.getElementById('st-pending-res').textContent =
+        reservations.filter(r => r.status === 'pending').length;
+      document.getElementById('st-total-ord').textContent = orders.length || '0';
+      document.getElementById('st-active-ord').textContent =
+        orders.filter(o => ['received','preparing','ready','out_for_delivery'].includes(o.status)).length;
+    } catch(e) {
+      console.error('Stats error:', e);
+    }
   }
 
   // ── LOAD RESERVATIONS ─────────────────────────────────────────────────────
-  function loadReservations() {
+  async function loadReservations() {
+    document.getElementById('res-loading').style.display = 'block';
+    document.getElementById('res-table-wrap').innerHTML = '';
     const status = document.getElementById('res-status-filter').value;
     const date = document.getElementById('res-date-filter').value;
-    const data = readReservations().filter(r => {
-      if (status && r.status !== status) return false;
-      if (date && r.date !== date) return false;
-      return true;
-    });
-
-    document.getElementById('res-loading').style.display = 'none';
-    if (!data || data.length === 0) {
+    let url = `${API_BASE}/reservations?`;
+    if (status) url += `status=${status}&`;
+    if (date) url += `date=${date}&`;
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      const data = json.data || [];
+      document.getElementById('res-loading').style.display = 'none';
+      if (!data.length) {
+        document.getElementById('res-table-wrap').innerHTML =
+          '<div class="empty-state">No reservations found.</div>';
+        return;
+      }
+      document.getElementById('res-table-wrap').innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Date</th><th>Name</th><th>Phone</th>
+            <th>Table</th><th>Zone</th><th>Occasion</th>
+            <th>Notes</th><th>Status</th><th>Booked At</th>
+          </tr></thead>
+          <tbody>
+            ${data.map(r => `
+              <tr>
+                <td>${r.date}</td>
+                <td>${r.name}</td>
+                <td class="muted">${r.phone}</td>
+                <td><strong>${r.tableNum}</strong></td>
+                <td class="muted">${r.tableZone}</td>
+                <td class="muted">${r.occasion || '—'}</td>
+                <td class="muted" style="max-width:160px;">${r.notes || '—'}</td>
+                <td>
+                  <span class="status s-${r.status}">${r.status}</span>
+                  <br>
+                  <select class="status-select" onchange="updateReservationStatus('${r._id}', this.value)">
+                    <option value="">Update…</option>
+                    <option value="pending">Pending</option>
+                    <option value="confirmed">Confirmed</option>
+                    <option value="completed">Completed</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </td>
+                <td class="muted">${fmtDate(r.createdAt)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch(e) {
+      document.getElementById('res-loading').style.display = 'none';
       document.getElementById('res-table-wrap').innerHTML =
-        '<div class="empty-state">No reservations found.</div>';
-      return;
+        '<div class="empty-state">Error loading reservations. Check your API.</div>';
     }
-
-    document.getElementById('res-table-wrap').innerHTML = `
-      <table class="data-table">
-        <thead><tr>
-          <th>Date</th><th>Name</th><th>Phone</th>
-          <th>Table</th><th>Zone</th><th>Occasion</th>
-          <th>Notes</th><th>Status</th><th>Booked At</th>
-        </tr></thead>
-        <tbody>
-          ${data.map(r => `
-            <tr>
-              <td>${r.date}</td>
-              <td>${r.name}</td>
-              <td class="muted">${r.phone}</td>
-              <td><strong>${r.tableNum}</strong></td>
-              <td class="muted">${r.tableZone}</td>
-              <td class="muted">${r.occasion || '—'}</td>
-              <td class="muted" style="max-width:160px;">${r.notes || '—'}</td>
-              <td>
-                <span class="status s-${r.status}">${r.status}</span>
-                <br>
-                <select class="status-select" onchange="updateReservationStatus('${r._id}', this.value)">
-                  <option value="">Update…</option>
-                  <option value="pending">Pending</option>
-                  <option value="confirmed">Confirmed</option>
-                  <option value="completed">Completed</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-              <td class="muted">${fmtDate(r.createdAt)}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
   }
 
-  // ── LOAD ORDERS ─────────────────────────────────────────────────────────
-  function loadOrders() {
+  // ── LOAD ORDERS ──────────────────────────────────────────────────────────
+  async function loadOrders() {
+    document.getElementById('ord-loading').style.display = 'block';
+    document.getElementById('ord-table-wrap').innerHTML = '';
     const status = document.getElementById('ord-status-filter').value;
     const mode = document.getElementById('ord-mode-filter').value;
-    const data = readOrders().filter(o => {
-      if (status && o.status !== status) return false;
-      if (mode && o.deliveryMode !== mode) return false;
-      return true;
-    });
-
-    document.getElementById('ord-loading').style.display = 'none';
-    if (!data || data.length === 0) {
+    let url = `${API_BASE}/orders?`;
+    if (status) url += `status=${status}&`;
+    if (mode) url += `deliveryMode=${mode}&`;
+    try {
+      const res = await fetch(url);
+      const json = await res.json();
+      const data = json.data || [];
+      document.getElementById('ord-loading').style.display = 'none';
+      if (!data.length) {
+        document.getElementById('ord-table-wrap').innerHTML =
+          '<div class="empty-state">No orders found.</div>';
+        return;
+      }
+      document.getElementById('ord-table-wrap').innerHTML = `
+        <table class="data-table">
+          <thead><tr>
+            <th>Customer</th><th>Phone</th><th>Items</th>
+            <th>Total</th><th>Mode</th><th>Address</th>
+            <th>Status</th><th>Ordered At</th>
+          </tr></thead>
+          <tbody>
+            ${data.map(o => `
+              <tr>
+                <td>${o.customerName}</td>
+                <td class="muted">${o.customerPhone}</td>
+                <td>
+                  <div class="items-mini">
+                    ${(o.items||[]).map(i => `<span>${i.qty}× ${i.name}</span> <span class="muted">₹${i.subtotal}</span><br>`).join('')}
+                  </div>
+                </td>
+                <td><strong>₹${o.totalAmount}</strong>
+                  <div class="muted" style="font-size:10px;">+₹${o.packingCharge} packing${o.deliveryCharge ? ' +₹'+o.deliveryCharge+' del' : ''}</div>
+                </td>
+                <td><span class="status ${o.deliveryMode === 'pickup' ? 's-ready' : 's-pending'}">${o.deliveryMode}</span></td>
+                <td class="muted" style="max-width:140px;">${o.deliveryAddress || '—'}</td>
+                <td>
+                  <span class="status s-${o.status}">${o.status.replace(/_/g,' ')}</span>
+                  <br>
+                  <select class="status-select" onchange="updateOrderStatus('${o._id}', this.value)">
+                    <option value="">Update…</option>
+                    <option value="received">Received</option>
+                    <option value="preparing">Preparing</option>
+                    <option value="ready">Ready</option>
+                    <option value="out_for_delivery">Out for Delivery</option>
+                    <option value="delivered">Delivered</option>
+                    <option value="cancelled">Cancelled</option>
+                  </select>
+                </td>
+                <td class="muted">${fmtDate(o.createdAt)}</td>
+              </tr>`).join('')}
+          </tbody>
+        </table>`;
+    } catch(e) {
+      document.getElementById('ord-loading').style.display = 'none';
       document.getElementById('ord-table-wrap').innerHTML =
-        '<div class="empty-state">No orders found.</div>';
-      return;
+        '<div class="empty-state">Error loading orders. Check your API.</div>';
     }
-
-    document.getElementById('ord-table-wrap').innerHTML = `
-      <table class="data-table">
-        <thead><tr>
-          <th>Customer</th><th>Phone</th><th>Items</th>
-          <th>Total</th><th>Mode</th><th>Address</th>
-          <th>Status</th><th>Ordered At</th>
-        </tr></thead>
-        <tbody>
-          ${data.map(o => `
-            <tr>
-              <td>${o.customerName}</td>
-              <td class="muted">${o.customerPhone}</td>
-              <td>
-                <div class="items-mini">
-                  ${o.items.map(i => `<span>${i.qty}× ${i.name}</span> <span class="muted">₹${i.subtotal}</span><br>`).join('')}
-                </div>
-              </td>
-              <td><strong>₹${o.totalAmount}</strong>
-                <div class="muted" style="font-size:10px;">+₹${o.packingCharge} packing${o.deliveryCharge ? ' +₹'+o.deliveryCharge+' del' : ''}</div>
-              </td>
-              <td><span class="status ${o.deliveryMode === 'pickup' ? 's-ready' : 's-pending'}">${o.deliveryMode}</span></td>
-              <td class="muted" style="max-width:140px;">${o.deliveryAddress || '—'}</td>
-              <td>
-                <span class="status s-${o.status}">${o.status.replace(/_/g,' ')}</span>
-                <br>
-                <select class="status-select" onchange="updateOrderStatus('${o._id}', this.value)">
-                  <option value="">Update…</option>
-                  <option value="received">Received</option>
-                  <option value="preparing">Preparing</option>
-                  <option value="ready">Ready</option>
-                  <option value="out_for_delivery">Out for Delivery</option>
-                  <option value="delivered">Delivered</option>
-                  <option value="cancelled">Cancelled</option>
-                </select>
-              </td>
-              <td class="muted">${fmtDate(o.createdAt)}</td>
-            </tr>`).join('')}
-        </tbody>
-      </table>`;
   }
 
   // ── UPDATE STATUS ─────────────────────────────────────────────────────────
-  function updateReservationStatus(id, status) {
+  async function updateReservationStatus(id, status) {
     if (!status) return;
-    const list = readReservations();
-    const item = list.find(r => r._id === id);
-    if (!item) return;
-    item.status = status;
-    saveReservations(list);
-    loadReservations();
-    loadStats();
+    try {
+      await fetch(`${API_BASE}/reservations/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadReservations();
+      loadStats();
+    } catch(e) { console.error('Update failed:', e); }
   }
 
-  function updateOrderStatus(id, status) {
+  async function updateOrderStatus(id, status) {
     if (!status) return;
-    const list = readOrders();
-    const item = list.find(o => o._id === id);
-    if (!item) return;
-    item.status = status;
-    saveOrders(list);
-    loadOrders();
-    loadStats();
+    try {
+      await fetch(`${API_BASE}/orders/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status })
+      });
+      loadOrders();
+      loadStats();
+    } catch(e) { console.error('Update failed:', e); }
   }
 
   function refreshAdmin() {
@@ -340,14 +344,9 @@
   loadReservations();
   loadOrders();
 
-  window.addEventListener('storage', () => {
-    loadStats();
-    loadReservations();
-    loadOrders();
-  });
-
   // Auto-refresh every 60 seconds
-  setInterval(() => { loadStats(); loadReservations(); loadOrders(); }, 60000);
+  setInterval(refreshAdmin, 60000);
 </script>
+
 </body>
 </html>
