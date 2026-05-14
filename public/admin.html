@@ -310,8 +310,8 @@
   async function updateReservationStatus(id, status) {
     if (!status) return;
     try {
-      await fetch(`${API_BASE}/reservations/${id}`, {
-        method: 'PUT',
+      await fetch(`${API_BASE}/reservations/${id}/status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
@@ -323,8 +323,8 @@
   async function updateOrderStatus(id, status) {
     if (!status) return;
     try {
-      await fetch(`${API_BASE}/orders/${id}`, {
-        method: 'PUT',
+      await fetch(`${API_BASE}/orders/${id}/status`, {
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status })
       });
