@@ -10,7 +10,11 @@ const path     = require('path');
 const app = express();
 
 // ── MIDDLEWARE ───────────────────────────────────────────────────────────────
-app.use(cors());                          // Allow requests from your HTML pages
+app.use(cors({
+  origin: "*",
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  allowedHeaders: ["Content-Type"]
+}));                  // Allow requests from your HTML pages
 app.use(express.json());                  // Parse JSON request bodies
 app.use(express.urlencoded({ extended: true }));
 

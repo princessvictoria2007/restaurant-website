@@ -149,49 +149,57 @@
 
   <!-- CART SIDE -->
   <div class="cart-panel">
-    <div class="cart-box">
-      <div class="cart-title">Your Order</div>
+    <div class="cart-title">Your Order</div>
 
-      <!-- Customer details -->
-      <div class="customer-fields">
-        <div class="cfield">
-          <label>Your Name</label>
-          <input type="text" id="custName" placeholder="Full name">
-        </div>
-        <div class="cfield">
-          <label>Phone Number</label>
-          <input type="tel" id="custPhone" placeholder="+91 XXXXX XXXXX">
-        </div>
-      </div>
-      <div class="cart-divider-label">— Your Items —</div>
+<!-- Delivery / Pickup FIRST -->
+<div class="delivery-toggle">
+  <div class="delivery-opt active" id="opt-pickup" onclick="setDelivery('pickup')">Pickup</div>
+  <div class="delivery-opt" id="opt-delivery" onclick="setDelivery('delivery')">Delivery</div>
+</div>
 
-      <div class="delivery-toggle">
-        <div class="delivery-opt active" id="opt-pickup" onclick="setDelivery('pickup')">Pickup</div>
-        <div class="delivery-opt" id="opt-delivery" onclick="setDelivery('delivery')">Delivery</div>
-      </div>
+<!-- Name + Phone -->
+<div class="customer-fields">
+  <div class="cfield">
+    <label>Your Name</label>
+    <input type="text" id="custName" placeholder="Full name">
+  </div>
 
-      <div class="address-field" id="addressField">
-        <label>Delivery Address</label>
-        <input type="text" id="deliveryAddr" placeholder="Enter your full address">
-      </div>
-
-      <div id="cartEmpty" class="cart-empty">
-        <div class="cart-empty-icon">🍽</div>
-        <p class="cart-empty-text">Your order is empty.<br>Add items from the menu.</p>
-      </div>
-      <div id="cartItems" class="cart-items" style="display:none"></div>
-      <div id="cartSummary" style="display:none">
-        <div class="cart-divider"></div>
-        <div class="cart-total"><span class="cart-total-label">Total</span><span class="cart-total-price" id="cartTotal">₹0</span></div>
-        <p class="cart-note">* Packing ₹20 · Delivery ₹40 extra</p>
-      </div>
-
-      <div class="error-msg" id="orderError"></div>
-      <button class="btn-order" id="orderBtn" onclick="placeOrder()" disabled><span>Place Order</span></button>
-    </div>
+  <div class="cfield">
+    <label>Phone Number</label>
+    <input type="tel" id="custPhone" placeholder="+91 XXXXX XXXXX">
   </div>
 </div>
 
+<!-- Address (only for delivery) -->
+<div class="address-field" id="addressField">
+  <label>Delivery Address</label>
+  <input type="text" id="deliveryAddr" placeholder="Enter your full address">
+</div>
+
+<!-- Items section -->
+<div class="cart-divider-label">— Your Items —</div>
+
+<div id="cartEmpty" class="cart-empty">
+  <div class="cart-empty-icon">🍽</div>
+  <p class="cart-empty-text">Your order is empty.<br>Add items from the menu.</p>
+</div>
+
+<div id="cartItems" class="cart-items" style="display:none"></div>
+
+<div id="cartSummary" style="display:none">
+  <div class="cart-divider"></div>
+  <div class="cart-total">
+    <span class="cart-total-label">Total</span>
+    <span class="cart-total-price" id="cartTotal">₹0</span>
+  </div>
+  <p class="cart-note">* Packing ₹20 · Delivery ₹40 extra</p>
+</div>
+
+<div class="error-msg" id="orderError"></div>
+
+<button class="btn-order" id="orderBtn" onclick="placeOrder()" disabled>
+  <span>Place Order</span>
+</button>
 <!-- MODAL -->
 <div class="modal-overlay" id="modal">
   <div class="modal">
@@ -205,7 +213,7 @@
 
 <script>
   // ── CONFIG ──────────────────────────────────────────────────────────────────
- const API_BASE = 'https://restaurant-website-0cxq.onrender.com/api';
+  const API_BASE = 'https://restaurant-website-cvxj.onrender.com/api';
 
   // ── MENU DATA ───────────────────────────────────────────────────────────────
   const menuData = {
