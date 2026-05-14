@@ -2,6 +2,7 @@
 // Run: node server.js  (or: npm run dev  for auto-restart)
 
 require('dotenv').config();
+require('./keepAlive');
 const express  = require('express');
 const mongoose = require('mongoose');
 const cors     = require('cors');
@@ -44,6 +45,10 @@ app.get('/admin', (req, res) => {
 // ── ROOT ─────────────────────────────────────────────────────────────────────
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'main.html'));
+});
+// ── HEALTH CHECK ─────────────────────────────────────────────────────────────
+app.get('/health', (req, res) => {
+  res.json({ success: true, message: 'Server is awake!' });
 });
 
 // ── 404 HANDLER ──────────────────────────────────────────────────────────────
